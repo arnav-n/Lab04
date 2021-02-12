@@ -8,7 +8,20 @@ Rating.Mortality    String  Above, Same, Below, or Unknown comparison to nationa
 Rating.Safety   String  Above, Same, Below, or Unknown comparison to national hospital safety 
 */
 const string rating::getRating() const {
-
 	//TODO implement
+	return phrase;
 }
+
+double rating::getRatingNum() const{
+	return aggregated;
+}
+
+void rating::setRatingNum(double input){
+	aggregated = input;
+	if (aggregated<0) phrase = "None";
+	else if(aggregated>=3 and aggregated<5) phrase="Below";
+	else if(aggregated>=5 and aggregated<7) phrase="Same";
+	else if(aggregated>7) phrase="Above";
+}
+
 

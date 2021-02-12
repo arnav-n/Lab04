@@ -33,14 +33,16 @@ string getFieldNQ(std::stringstream &ss);
 /* helper: read out column names for CSV file */
 void consumeColumnNames(std::ifstream &myFile);
 
+std::vector<shared_ptr<placeData>> read_csv(std::string filename, typeFlag fileType);
+
 //read from a CSV file (for a given data type) return a vector of the data
-std::vector<shared_ptr<demogData>> read_csv(std::string filename, typeFlag fileType);
+std::vector<shared_ptr<demogData>> read_csvDemog(std::string filename, typeFlag fileType);
 
 // Read one line from a CSV file for county demographic data specifically
 shared_ptr<demogData> readCSVLineDemog(std::string theLine);
 
 // Functions to read a CSV file - specific to data type - hospital data
-shared_ptr<hospitalData> readCSVLineHopstial(std::string theLine);
+shared_ptr<hospitalData> readCSVLineHospital(std::string theLine);
 std::vector<shared_ptr<hospitalData> > read_csvHospital(std::string filename, typeFlag fileType);
 
 #endif

@@ -31,58 +31,130 @@ void dataAQ::createStateDemogData(std::vector<shared_ptr<demogData>>& theData) {
         //this keeps a running total
         allStateDemogData[stateName]->addDemogtoRegion(obj);
     }
-  
-
 }
 
 
 void dataAQ::createStateHospData(std::vector<shared_ptr<hospitalData>>& theData) {
-
-
+  for (const auto &obj : theData) {
+        string stateName = obj->getName();
+        //if first state entry, create it
+        if (allStateHospData.count(stateName) < 1) {
+           //cout << "Making a new state entry: " << stateName << endl;
+           allStateHospData[stateName] = new comboHospitalData("state", stateName, "");
+        }
+        //either way now add this county info 
+        //this keeps a running total
+        allStateHospData[stateName]->addHospitaltoRegion(obj);
+    } 
 }
 
 
 void dataAQ::createCountyHospData(std::vector<shared_ptr<hospitalData>>& theHospitalData) {
-  
+  for (const auto &obj : theHospitalData) {
+        string cityName = obj->getLocalName();
+        string stateName = obj->getName();
+        string countyName = cityToCounty[cityName+stateName];
+
+        //if first state entry, create it
+        if (allCountyHData.count(countyName) < 1) {
+           //cout << "Making a new state entry: " << stateName << endl;
+           allCountyHData[countyName] = new comboHospitalData("county", countyName+" County", stateName,"");
+        }
+        //either way now add this county info 
+        //this keeps a running total
+        allCountyHData[countyName]->addHospitaltoRegion(obj);
+  } 
 }
 
 
 
+bool compareOverall(std::pair<std::string, hospitalData *> left1, std::pair<std::string, hospitalData *> right1) {
+    return (left1.second->getOverallRate() < right1.second->getOverallRate());
+}
 
+bool compareVecOverall(hospitalData* left, hospitalData* right) {
+    double l = left->getOverallRate(); 
+    double r = right->getOverallRate();
+    if(l==r){
+      string lName = left->getArea();
+      string rName = right->getArea();
+      return lName>rName;
+    }
+    else return l<r;
+}
+
+bool comparePov(demogData* left, demogData* right) {
+    double Lpovc = left->getBelowPovertyCount();
+    double Lcount = left->getPop();
+    double LbelowPercent = Lpovc/Lcount;
+
+    double Rpovc = right->getBelowPovertyCount();
+    double Rcount = right->getPop();
+    double RbelowPercent = Rpovc/Rcount;
+
+
+    return LbelowPercent < RbelowPercent;
+}
 void dataAQ::sortHospRatingLowHigh(std::vector<comboHospitalData *>& hospLowToHigh, 
   string regionType) {
-
+    map<string, comboHospitalData*>:: iterator it;
+    for (it = allStateHospData.begin(); it!=allStateHospData.end(); it++){
+        hospLowToHigh.push_back(it->second);
+    }
+    std::sort(hospLowToHigh.begin(), hospLowToHigh.end(), compareVecOverall);
 }
 
 
 void dataAQ::sortHospRatingHighLow(std::vector<comboHospitalData *>& hospHighToLow, 
   string regionType) {
-
+    map<string, comboHospitalData*>:: iterator it;
+    for (it = allStateHospData.begin(); it!=allStateHospData.end(); it++){
+        hospHighToLow.push_back(it->second);
+    }
+    std::sort(hospHighToLow.begin(), hospHighToLow.end(), compareVecOverall);
+    std::reverse(hospHighToLow.begin(), hospHighToLow.end());
 }
 
 
 /* for a specific state... */
 void dataAQ::sortHospRatingHighLowForState(std::vector<comboHospitalData *>& hospHighToLow, string state) {
-
-
+  // cout<<"size of county map: "<<allCountyHData.size()<<endl;
+  map<string, comboHospitalData*>::iterator it;
+  for(it = allCountyHData.begin();it!=allCountyHData.end();it++){
+    // cout<<it->second->getName()<<endl;
+    if(it->second->getName()==state){
+      // cout<<"pushing "<<it->second->getArea()<<endl;
+      // cout<<"county "<<it->second->getLocalName()<<" found in "<<it->second->getName()<<endl;
+      hospHighToLow.push_back(it->second);
+    }
+  }
+  std::sort(hospHighToLow.begin(), hospHighToLow.end(), compareVecOverall);
+  std::reverse(hospHighToLow.begin(), hospHighToLow.end());
 }
 
 
 
 
  void dataAQ::sortDemogPovLevelLowHigh(std::vector<demogData *>& povLevelLowHigh) {
+  map<string, comboDemogData*>:: iterator it;
+    for (it = allStateDemogData.begin(); it!=allStateDemogData.end(); it++){
+        povLevelLowHigh.push_back(it->second);
+    }
 
-
-
+    std::sort(povLevelLowHigh.begin(), povLevelLowHigh.end(), comparePov);
 }
 
 
 
 
  void dataAQ::sortDemogPovLevelHighLow(std::vector<demogData *>& povLevelHighLow) {
+    map<string, comboDemogData*>:: iterator it;
+    for (it = allStateDemogData.begin(); it!=allStateDemogData.end(); it++){
+        povLevelHighLow.push_back(it->second);
+    }
 
-
-
+    std::sort(povLevelHighLow.begin(), povLevelHighLow.end(), comparePov);
+    std::reverse(povLevelHighLow.begin(), povLevelHighLow.end());
 }
 
 

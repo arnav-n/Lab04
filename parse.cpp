@@ -1,4 +1,12 @@
 /* helper routines to read out csv data */
+#include "dataAQ.h"
+#include "demogData.h"
+#include "comboDemogData.h"
+#include "comboHospitalData.h"
+#include "countyDemogData.h"
+#include "comboHospitalData.h"
+#include "hospitalData.h"
+#include "cityHospitalData.h"
 #include "parse.h"
 #include <algorithm>
 #include <cmath>
@@ -82,7 +90,7 @@ shared_ptr<demogData> readCSVLineDemog(std::string theLine) {
     int totalPop2014 = stoi(getField(ss));
 
     //store demographic data as counts
-    return make_shared<demogData>(name, state, round(popOver65*totalPop2014), 
+    return make_shared<countyDemogData>(name, state, round(popOver65*totalPop2014), 
             round(popUnder18*totalPop2014),
             round(popUnder5*totalPop2014), 
             round(bachelorDegreeUp*totalPop2014), 
@@ -94,9 +102,9 @@ shared_ptr<demogData> readCSVLineDemog(std::string theLine) {
 
 //read from a CSV file (for a given data type) return a vector of the data
 // DO NOT modify 
-std::vector<shared_ptr<demogData>> read_csv(std::string filename, typeFlag fileType) {
+std::vector<shared_ptr<placeData>> read_csv(std::string filename, typeFlag fileType) {
     //the actual data
-    std::vector<shared_ptr<demogData>> theData;
+    std::vector<shared_ptr<placeData>> theData;
 
     // Create an input filestream
     std::ifstream myFile(filename);
@@ -114,9 +122,10 @@ std::vector<shared_ptr<demogData>> read_csv(std::string filename, typeFlag fileT
 
         // Now read data, line by line and create demographic dataobject
         while(std::getline(myFile, line)) {
-            if (fileType == DEMOG) {
-                theData.push_back(readCSVLineDemog(line));
-            } else {
+            if (fileType == DEMOG)  theData.push_back(readCSVLineDemog(line));
+            else if (fileType == HOSPITAL) 
+            theData.push_back(readCSVLineHospital(line));
+            else {
                 cout << "ERROR - unknown file type" << endl;
                 exit(0);
             }
@@ -129,6 +138,8 @@ std::vector<shared_ptr<demogData>> read_csv(std::string filename, typeFlag fileT
     return theData;
 }
 
+//COMMENTINGOUT ALL HOSPITAL PARSING
+
 /* Read one line from a CSV file for hospital data specifically */
 shared_ptr<hospitalData> readCSVLineHospital(std::string theLine) {
     std::stringstream ss(theLine);
@@ -138,14 +149,20 @@ shared_ptr<hospitalData> readCSVLineHospital(std::string theLine) {
     string state = getField(ss);
     string type  = getField(ss);
     string temp = getField(ss);
+    int overallRate = stoi(temp);
+
+    string mort = getField(ss);
+    //safety should be ignored?
+    string safety = getField(ss);
+    string readmit = getField(ss);
  
     //TODO you need to read rating data
 
-    return make_shared<hospitalData>(name, state, type);
+    return make_shared<cityHospitalData>(city, state, type, overallRate, mort, readmit);
 }
 
-//read from a CSV file (for a given data type) return a vector of the 
-//hospital data
+// read from a CSV file (for a given data type) return a vector of the 
+// hospital data
 // DO NOT modify 
 std::vector<shared_ptr<hospitalData>> read_csvHospital(std::string filename, typeFlag fileType) {
     //the actual data

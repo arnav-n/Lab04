@@ -11,6 +11,14 @@
   aggregated demographic data for a given regional level (state - or larger region)
 */
 class comboDemogData : public demogData  {
+  public:
+  comboDemogData(string ident, string inS):demogData(inS) {
+    identifier = ident;
+  }
+  //aggregator method
+  void addDemogtoRegion(shared_ptr<demogData>  local);
 
+  protected:
+    string identifier;
 };
 #endif
